@@ -246,7 +246,6 @@ int Server::Listen()
 
 }
 
-
 int Server::CloseSever()
 {
 	for (int n = (int)g_clientList.size() - 1; n >= 0; n--)
@@ -264,4 +263,23 @@ int Server::CloseSever()
 	getchar();
 
 	return 0;
+}
+
+void Server::ClientInit(const char* ip, unsigned short port)//服务器发送数据到另一服务器
+{
+	client = new EasyTcpClient();
+
+	client->Connect(ip, port);
+
+	
+}
+
+void Server::ClientSendMsg()//服务器发送数据到另一服务器
+{
+	Login login;
+	strcpy(login.userName, "123");
+	strcpy(login.PassWord, "1234321");
+
+	client->SendData(&login);
+
 }

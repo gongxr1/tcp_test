@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include <WinSock2.h>
 
+#include "EasyTcpClient.hpp"
 #include "MessageHeader.hpp"
 
 #pragma comment(lib, "ws2_32.lib")
@@ -24,6 +25,12 @@ public:
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
+
+	EasyTcpClient* client;
+
+	void ClientInit(const char* ip, unsigned short port);//服务器发送数据到另一服务器
+	void ClientSendMsg();//服务器发送数据到另一服务器
+
 
 	SOCKET ListenSocket;// incoming connection requests.
 

@@ -2,9 +2,11 @@
 //
 #include "Server.h"
 #include "EasyTcpClient.hpp"
+#include "GeneralHashFunctions.h"
 
 #include <thread>
 #include <iostream>
+#include <string>
 
 bool g_bRun = true;
 
@@ -74,6 +76,10 @@ void Sever1Thread()
 
 	server_test.ServerInit(4568);
 
+	server_test.ClientInit("127.0.0.1", 4567);//服务器发送数据到另一服务器
+	
+	server_test.ClientSendMsg();//服务器发送数据到另一服务器
+
 	while (g_bRun)
 	{
 		server_test.Listen();
@@ -89,6 +95,10 @@ void Sever2Thread()
 
 	server_test.ServerInit(4567);
 
+	server_test.ClientInit("127.0.0.1", 4568);//服务器发送数据到另一服务器
+
+	server_test.ClientSendMsg();//服务器发送数据到另一服务器
+
 	while (g_bRun)
 	{
 		server_test.Listen();
@@ -98,6 +108,24 @@ void Sever2Thread()
 }
 int main()
 {
+
+	const std::string key = "abcdefghijklmnopqrstuvwxyz12345678901";
+
+	std::cout << "General Purpose Hash Function Algorithms Test" << std::endl;
+	std::cout << "By Arash Partow - 2002        " << std::endl;
+	std::cout << "Key: " << key << std::endl;
+	std::cout << " 1. RS-Hash Function Value:   " << sha1(key) << std::endl;
+	std::cout << " 2. JS-Hash Function Value:   " << JSHash(key) << std::endl;
+	std::cout << " 3. PJW-Hash Function Value:  " << PJWHash(key) << std::endl;
+	//std::cout << " 4. ELF-Hash Function Value:  " << ELFHash(key) << std::endl;
+	std::cout << " 5. BKDR-Hash Function Value: " << BKDRHash(key) << std::endl;
+	std::cout << " 6. SDBM-Hash Function Value: " << SDBMHash(key) << std::endl;
+	std::cout << " 7. DJB-Hash Function Value:  " << DJBHash(key) << std::endl;
+	std::cout << " 8. DEK-Hash Function Value:  " << DEKHash(key) << std::endl;
+	std::cout << " 9. FNV-Hash Function Value:  " << FNVHash(key) << std::endl;
+	std::cout << "10. BP-Hash Function Value:   " << BPHash(key) << std::endl;
+	std::cout << "11. AP-Hash Function Value:   " << APHash(key) << std::endl;
+
 	//exit终止
 	thread t1(cmdThread);
 	t1.detach();
@@ -125,6 +153,10 @@ int main()
 	printf("已退出.\n");
 	return 0;
 }
+
+
+
+
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
 // 调试程序: F5 或调试 >“开始调试”菜单
