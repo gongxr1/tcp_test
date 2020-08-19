@@ -4,9 +4,13 @@
 #include "EasyTcpClient.hpp"
 #include "GeneralHashFunctions.h"
 
+#include <gmp.h>
+
 #include <thread>
 #include <iostream>
 #include <string>
+
+
 
 bool g_bRun = true;
 
@@ -47,7 +51,11 @@ void sendThread(int id) //4个线程 1 - 4
 	}
 	for (int n = begin; n < end; n++)
 	{
-		client[n]->Connect("127.0.0.1", 4567);
+		if(id==1||id==3)
+			client[n]->Connect("127.0.0.1", 4567);
+		else
+			client[n]->Connect("127.0.0.1", 4568);
+
 		printf("Connect = %d\n", n);
 	}
 	
@@ -60,6 +68,8 @@ void sendThread(int id) //4个线程 1 - 4
 		for (int n = begin; n < end; n++)
 		{
 			client[n]->SendData(&login);
+			printf("id=%d,cx = %d\n",id, c++%10000);
+
 			//client[n]->OnRun();
 		}
 	}
@@ -72,6 +82,7 @@ void sendThread(int id) //4个线程 1 - 4
 
 void Sever1Thread()
 {
+	int c = 0;
 	Server 	server_test;
 
 	server_test.ServerInit(4568);
@@ -83,6 +94,8 @@ void Sever1Thread()
 	while (g_bRun)
 	{
 		server_test.Listen();
+		printf("sever111-cx = %d\n",  c++ % 10000);
+
 	}
 
 	server_test.CloseSever();
@@ -91,6 +104,8 @@ void Sever1Thread()
 
 void Sever2Thread()
 {
+	int c = 0;
+
 	Server 	server_test;
 
 	server_test.ServerInit(4567);
@@ -102,12 +117,21 @@ void Sever2Thread()
 	while (g_bRun)
 	{
 		server_test.Listen();
+		printf("sever222-cx = %d\n", c++ % 10000);
+
 	}
 
 	server_test.CloseSever();
 }
 int main()
 {
+	mpz_t t;	//mpz_t 为GMP内置大数类型
+	mpz_init(t);    //大数t使用前要进行初始化，以便动态分配空间
+	mpz_ui_pow_ui(t, 2, 100);	//GMP所有函数基本都是以mpz打头
+	gmp_printf("2^100=%Zd\n", t);   //输出大数，大数的格式化标志为%Zd
+	mpz_clear(t);
+	//scanf_s("%s");
+
 
 	const std::string key = "abcdefghijklmnopqrstuvwxyz12345678901";
 

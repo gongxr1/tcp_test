@@ -161,8 +161,8 @@ int Server::ServerInit(int port)
 int Server::Listen() 
 {
 
-	while (true)
-	{
+	/*while (true)
+	{*/
 		// Berkeley sockets
 		fd_set readfds;			// 描述符(socket)集合
 		fd_set writefds;
@@ -193,7 +193,8 @@ int Server::Listen()
 		if (ret < 0)
 		{
 			printf("select任务结束,called failed:%d!\n", WSAGetLastError());
-			break;
+			//break;
+			return -1;
 		}
 
 		// 是否有数据可读
@@ -242,7 +243,7 @@ int Server::Listen()
 		}
 
 		//printf("空闲时间处理其他业务...\n");
-	}
+	//}
 
 }
 
