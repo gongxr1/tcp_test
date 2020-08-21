@@ -3,6 +3,8 @@
 #include "Server.h"
 #include "EasyTcpClient.hpp"
 #include "GeneralHashFunctions.h"
+#include "ELGamal.h"
+
 
 #include <gmp.h>
 
@@ -24,6 +26,9 @@ EasyTcpClient* client[cCount];
 //服务器对象
 Server* 	server_test1;
 Server* 	server_test2;
+ELGamal*   server_ELGamal1;
+ELGamal*   server_ELGamal2;
+
 
 EasyTcpClient* client1[2];
 EasyTcpClient* client2[2];
@@ -173,6 +178,12 @@ void Sever2ClentThread()
 
 void Sever1Thread()
 {
+	server_ELGamal1 = new ELGamal();
+	server_ELGamal1->elgamal_init();
+	server_ELGamal1->key_generation();//密钥生成
+//		cout << "全局参数：" << endl;
+//		gmp_printf("{%Zd,\n%Zd,\n%Zd}\n\n", p, a, Ya);
+
 	int c = 0;
 	//Server 	server_test1;
 	server_test1 = new Server();
@@ -195,6 +206,12 @@ void Sever1Thread()
 
 void Sever2Thread()
 {
+	server_ELGamal2 = new ELGamal();
+	server_ELGamal2->elgamal_init();
+	server_ELGamal2->key_generation();//密钥生成
+//		cout << "全局参数：" << endl;
+//		gmp_printf("{%Zd,\n%Zd,\n%Zd}\n\n", p, a, Ya);
+
 	int c = 0;
 
 	//Server 	server_test2;

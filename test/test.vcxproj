@@ -159,14 +159,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="ELGamal.cpp" />
     <ClCompile Include="GeneralHashFunctions.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client.h" />
     <ClInclude Include="EasyTcpClient.hpp" />
+    <ClInclude Include="ELGamal.h" />
     <ClInclude Include="GeneralHashFunctions.h" />
     <ClInclude Include="MessageHeader.hpp" />
     <ClInclude Include="Server.h" />
