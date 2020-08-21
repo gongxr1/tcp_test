@@ -184,7 +184,7 @@ int Server::Listen()
 		}
 
 		// 设置超时时间 select 非阻塞
-		timeval timeout = { 0, 0 };
+		timeval timeout = { 1, 0 };
 
 		// nfds是一个整数值，是指fd_set集合中所有描述符(socket)的范围，而不是数量
 		// 即是所有文件描述符最大值+1 在Windows中这个参数可以写0
@@ -277,9 +277,12 @@ void Server::ClientInit(const char* ip, unsigned short port)//服务器发送数据到另
 
 void Server::ClientSendMsg()//服务器发送数据到另一服务器
 {
-	Login login;
+	/*Login login;
 	strcpy(login.userName, "123");
-	strcpy(login.PassWord, "1234321");
+	strcpy(login.PassWord, "1234321");*/
+	Login login;
+	strcpy(login.userName, "zjj");
+	strcpy(login.PassWord, "969513");
 
 	client->SendData(&login);
 

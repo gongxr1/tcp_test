@@ -13,13 +13,21 @@
 
 
 bool g_bRun = true;
-
+int g_bRun_send = 0;
 //客户端数量
 const int cCount = 200;
 //发送线程数量
 const int tCount = 4;
 //客户端数组
 EasyTcpClient* client[cCount];
+
+//服务器对象
+Server* 	server_test1;
+Server* 	server_test2;
+
+EasyTcpClient* client1[2];
+EasyTcpClient* client2[2];
+
 
 //将输入命令分离出来
 void cmdThread() {
@@ -51,7 +59,7 @@ void sendThread(int id) //4个线程 1 - 4
 	}
 	for (int n = begin; n < end; n++)
 	{
-		if(id==1||id==3)
+		if(n%2)
 			client[n]->Connect("127.0.0.1", 4567);
 		else
 			client[n]->Connect("127.0.0.1", 4568);
@@ -63,6 +71,8 @@ void sendThread(int id) //4个线程 1 - 4
 	strcpy(login.userName, "zjj");
 	strcpy(login.PassWord, "969513");
 
+	g_bRun_send += 1;
+
 	while (g_bRun)
 	{
 		for (int n = begin; n < end; n++)
@@ -72,6 +82,8 @@ void sendThread(int id) //4个线程 1 - 4
 
 			//client[n]->OnRun();
 		}
+		
+
 	}
 
 	for (int n = begin; n < end; n++)
@@ -80,25 +92,104 @@ void sendThread(int id) //4个线程 1 - 4
 	}
 }
 
-void Sever1Thread()
+void Sever1ClentThread()
 {
-	int c = 0;
-	Server 	server_test;
+	client1[0] = new EasyTcpClient();
+	client1[1] = new EasyTcpClient();
 
-	server_test.ServerInit(4568);
+	client1[0]->Connect("127.0.0.1", 4567);
+	client1[1]->Connect("127.0.0.1", 4567);
 
-	server_test.ClientInit("127.0.0.1", 4567);//服务器发送数据到另一服务器
-	
-	server_test.ClientSendMsg();//服务器发送数据到另一服务器
+	Login login;
+	strcpy(login.userName, "aaaaaaa");
+	strcpy(login.PassWord, "111111");
 
 	while (g_bRun)
 	{
-		server_test.Listen();
-		printf("sever111-cx = %d\n",  c++ % 10000);
+		for (int n = cCount; n < cCount+1; n++)
+		{
+			client1[0]->SendData(&login);
+			client1[1]->SendData(&login);
+
+			printf("id=111111");
+
+			//client[n]->OnRun();
+		}
+
+		/*Sleep(500);
+
+			client[cCount]->SendData(&login);
+			Sleep(500);
+
+			client[cCount + 1]->SendData(&login);*/
+	
+	}
+
+	
+	client1[0]->Close();
+	client1[1]->Close();
+
+}
+
+
+void Sever2ClentThread()
+{
+	client2[0] = new EasyTcpClient();
+	client2[1] = new EasyTcpClient();
+
+	client2[0]->Connect("127.0.0.1", 4568);
+	client2[1]->Connect("127.0.0.1", 4568);
+
+	Login login;
+	strcpy(login.userName, "aaaaaaa");
+	strcpy(login.PassWord, "2222222");
+
+	while (g_bRun)
+	{
+		for (int n = cCount; n < cCount + 1; n++)
+		{
+			client2[0]->SendData(&login);
+			client2[1]->SendData(&login);
+
+			printf("id=22222");
+
+			//client[n]->OnRun();
+		}
+
+		/*Sleep(500);
+
+			client[cCount]->SendData(&login);
+			Sleep(500);
+
+			client[cCount + 1]->SendData(&login);*/
 
 	}
 
-	server_test.CloseSever();
+
+	client2[0]->Close();
+	client2[1]->Close();
+
+}
+
+void Sever1Thread()
+{
+	int c = 0;
+	//Server 	server_test1;
+	server_test1 = new Server();
+	server_test1->ServerInit(4568);
+
+	//server_test1.ClientInit("127.0.0.1", 4567);//服务器发送数据到另一服务器
+	
+	//server_test1.ClientSendMsg();//服务器发送数据到另一服务器
+
+	while (g_bRun)
+	{
+		server_test1->Listen();
+		//printf("sever111-cx = %d\n",  c++ % 10000);
+		//server_test1.ClientSendMsg();//服务器发送数据到另一服务器
+	}
+
+	server_test1->CloseSever();
 
 }
 
@@ -106,49 +197,74 @@ void Sever2Thread()
 {
 	int c = 0;
 
-	Server 	server_test;
+	//Server 	server_test2;
+	server_test2 = new Server();
 
-	server_test.ServerInit(4567);
+	server_test2->ServerInit(4567);
 
-	server_test.ClientInit("127.0.0.1", 4568);//服务器发送数据到另一服务器
+	//server_test2.ClientInit("127.0.0.1", 4568);//服务器发送数据到另一服务器
 
-	server_test.ClientSendMsg();//服务器发送数据到另一服务器
+	
 
 	while (g_bRun)
 	{
-		server_test.Listen();
-		printf("sever222-cx = %d\n", c++ % 10000);
-
+		server_test2->Listen();
+		//printf("sever222-cx = %d\n", c++ % 10000);
+		//server_test2.ClientSendMsg();//服务器发送数据到另一服务器
 	}
 
-	server_test.CloseSever();
+	server_test2->CloseSever();
 }
+
+
+
+
+
+
 int main()
 {
-	mpz_t t;	//mpz_t 为GMP内置大数类型
-	mpz_init(t);    //大数t使用前要进行初始化，以便动态分配空间
-	mpz_ui_pow_ui(t, 2, 100);	//GMP所有函数基本都是以mpz打头
-	gmp_printf("2^100=%Zd\n", t);   //输出大数，大数的格式化标志为%Zd
-	mpz_clear(t);
-	//scanf_s("%s");
+	/*char Data[2048], Key[2048];
+	SHA256_DATA SD256;
+	SHA1_DATA SD1;
+	printf("Data(2048バイト未満) = ");
+	gets_s(Data);
+	printf("Key(2048バイト未満) = ");
+	gets_s(Key);
+	SHA1(&SD1, Data, 0);
+	SHA256(&SD256, Data, 0);
+	printf("\nSHA1 = %s\n", SD1.Val_String);
+	printf("SHA256 = %s\n\n", SD256.Val_String);
+	HMAC_SHA1(&SD1, Data, Key, 0);
+	HMAC_SHA256(&SD256, Data, Key, 0);
+	printf("HMAC-SHA1 = %s\n", SD1.Val_String);
+	printf("HMAC-SHA256 = %s\n", SD256.Val_String);*/
 
 
-	const std::string key = "abcdefghijklmnopqrstuvwxyz12345678901";
 
-	std::cout << "General Purpose Hash Function Algorithms Test" << std::endl;
-	std::cout << "By Arash Partow - 2002        " << std::endl;
-	std::cout << "Key: " << key << std::endl;
-	std::cout << " 1. RS-Hash Function Value:   " << sha1(key) << std::endl;
-	std::cout << " 2. JS-Hash Function Value:   " << JSHash(key) << std::endl;
-	std::cout << " 3. PJW-Hash Function Value:  " << PJWHash(key) << std::endl;
-	//std::cout << " 4. ELF-Hash Function Value:  " << ELFHash(key) << std::endl;
-	std::cout << " 5. BKDR-Hash Function Value: " << BKDRHash(key) << std::endl;
-	std::cout << " 6. SDBM-Hash Function Value: " << SDBMHash(key) << std::endl;
-	std::cout << " 7. DJB-Hash Function Value:  " << DJBHash(key) << std::endl;
-	std::cout << " 8. DEK-Hash Function Value:  " << DEKHash(key) << std::endl;
-	std::cout << " 9. FNV-Hash Function Value:  " << FNVHash(key) << std::endl;
-	std::cout << "10. BP-Hash Function Value:   " << BPHash(key) << std::endl;
-	std::cout << "11. AP-Hash Function Value:   " << APHash(key) << std::endl;
+	//mpz_t t;	//mpz_t 为GMP内置大数类型
+	//mpz_init(t);    //大数t使用前要进行初始化，以便动态分配空间
+	//mpz_ui_pow_ui(t, 2, 100);	//GMP所有函数基本都是以mpz打头
+	//gmp_printf("2^100=%Zd\n", t);   //输出大数，大数的格式化标志为%Zd
+	//mpz_clear(t);
+	////scanf_s("%s");
+
+
+	//const std::string key = "abcdefghijklmnopqrstuvwxyz12345678901";
+
+	//std::cout << "General Purpose Hash Function Algorithms Test" << std::endl;
+	//std::cout << "By Arash Partow - 2002        " << std::endl;
+	//std::cout << "Key: " << key << std::endl;
+	//std::cout << " 1. RS-Hash Function Value:   " << sha1(key) << std::endl;
+	//std::cout << " 2. JS-Hash Function Value:   " << JSHash(key) << std::endl;
+	//std::cout << " 3. PJW-Hash Function Value:  " << PJWHash(key) << std::endl;
+	////std::cout << " 4. ELF-Hash Function Value:  " << ELFHash(key) << std::endl;
+	//std::cout << " 5. BKDR-Hash Function Value: " << BKDRHash(key) << std::endl;
+	//std::cout << " 6. SDBM-Hash Function Value: " << SDBMHash(key) << std::endl;
+	//std::cout << " 7. DJB-Hash Function Value:  " << DJBHash(key) << std::endl;
+	//std::cout << " 8. DEK-Hash Function Value:  " << DEKHash(key) << std::endl;
+	//std::cout << " 9. FNV-Hash Function Value:  " << FNVHash(key) << std::endl;
+	//std::cout << "10. BP-Hash Function Value:   " << BPHash(key) << std::endl;
+	//std::cout << "11. AP-Hash Function Value:   " << APHash(key) << std::endl;
 
 	//exit终止
 	thread t1(cmdThread);
@@ -160,14 +276,28 @@ int main()
 	thread t3(Sever2Thread);
 	t3.detach();
 
+	thread t5(Sever1ClentThread);
+	t5.detach();
+	thread t6(Sever2ClentThread);
+	t6.detach();
+	//Sleep(3000);
+
 	//启动发送线程
 	for (int n = 0; n < tCount; n++)
 	{
-		thread t1(sendThread, n + 1);
-		t1.detach();
+		thread t4(sendThread, n + 1);
+		t4.detach();
 	}
 
+	Sleep(100);
+
 	
+	
+
+	//Sleep(100);
+	//server_test1.ClientInit("127.0.0.1", 4568);//服务器发送数据到另一服务器
+	//Sleep(100);
+	//server_test2.ClientInit("127.0.0.1", 4567);//服务器发送数据到另一服务器
 
 
 	while (g_bRun)
