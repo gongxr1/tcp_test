@@ -13,7 +13,7 @@ Server::~Server()
 int Server::processor(SOCKET sock)
 {
 	// 缓冲区(4096字节)
-	char szRecv[4096] = {};
+	char szRecv[4096*2] = {};
 	// 5、接收客户端的请求
 	// 先接收消息头
 	int recvLen = recv(sock, szRecv, sizeof(DataHeader), 0);
@@ -48,6 +48,85 @@ int Server::processor(SOCKET sock)
 			sock, logout->dataLength, logout->userName);
 		LoginOutResult ret;
 		send(sock, (char*)&ret, sizeof(LoginOutResult), 0);
+	}
+	break;
+	case CMD_ELGamal_KEY:
+	{
+		ELGalamKey *ELGamal = (ELGalamKey*)szRecv;
+
+		recv(sock, szRecv + sizeof(DataHeader), pHeader->dataLength - sizeof(DataHeader), 0);
+		printf("收到客户端<Socket=%d>请求：CMD_ELGamal_KEY, 数据长度：%d, 公钥：%s\n",
+			sock, ELGamal->dataLength, ELGamal->Y);
+
+		mpz_init_set(server_ELGamal->Y_other, ELGamal->Y);
+		mpz_init_set(server_ELGamal->q, ELGamal->q);
+		mpz_init_set(server_ELGamal->a, ELGamal->a);
+		mpz_init_set(server_ELGamal->p, ELGamal->p);
+
+
+		server_ELGamal->key_generation_easy();
+
+		key_on = 1;
+	/*	LoginOutResult ret;
+		send(sock, (char*)&ret, sizeof(LoginOutResult), 0);*/
+	}
+	break;
+	case CMD_ELGamal_KEY_Ya:
+	{
+		ELGalamKey *ELGamal = (ELGalamKey*)szRecv;
+
+		recv(sock, szRecv + sizeof(DataHeader), pHeader->dataLength - sizeof(DataHeader), 0);
+		printf("收到客户端<Socket=%d>请求：CMD_ELGamal_KEY_Ya, 数据长度：%d, 公钥：%s\n",
+			sock, ELGamal->dataLength, ELGamal->Y);
+
+		mpz_init_set(server_ELGamal->Y_other, ELGamal->Y);
+
+		key_on = 1;
+		/*	LoginOutResult ret;
+			send(sock, (char*)&ret, sizeof(LoginOutResult), 0);*/
+	}
+	break;
+	case CMD_CLIENT_ID:
+	{
+		ClientID *clientid = (ClientID*)szRecv;
+
+		recv(sock, szRecv + sizeof(DataHeader), pHeader->dataLength - sizeof(DataHeader), 0);
+		printf("收到客户端<Socket=%d>请求：ClientID, 数据长度：%d, ID: %d\n",
+			sock, clientid->dataLength, clientid->ID);
+		
+		id_clientList[clientid->ID] = sock;
+	}
+	break;
+	case CMD_EXCHANGE_YAB:
+	{
+		ExchangeYab *exchangeYab = (ExchangeYab*)szRecv;
+
+		recv(sock, szRecv + sizeof(DataHeader), pHeader->dataLength - sizeof(DataHeader), 0);
+		printf("收到客户端<Socket=%d>请求：CMD_EXCHANGE_YAB, 数据长度：%d, id: %d\n",
+			sock, exchangeYab->dataLength, exchangeYab->id);
+		if (exchangeYab->dir == 3)
+		{
+			mpz_init_set(server_ELGamal->Ya_other, exchangeYab->Y);
+			server_ELGamal->key_generation_end_a();
+			cout << "Ya is OK\n\n";
+		}
+		else if (exchangeYab->dir == 4)
+		{
+			mpz_init_set(server_ELGamal->Yb_other, exchangeYab->Y);
+			server_ELGamal->key_generation_end_b();
+			cout << "Yb is OK\n\n";
+		}
+		else
+		{
+			ExchangeYab exchangeyab;
+			exchangeyab.dir = exchangeYab->dir;
+			exchangeyab.id = exchangeYab->id;
+			mpz_init_set(exchangeyab.Y, exchangeYab->Y);
+
+			send(id_clientList[exchangeYab->id], (const char*)&exchangeyab, sizeof(ExchangeYab), 0);
+		}
+
+		//id_clientList[clientid->ID] = sock;
 	}
 	break;
 	default:
@@ -158,6 +237,14 @@ int Server::ServerInit(int port)
 	//return 0;
 }
 
+int Server::ServerELGamalInit()
+{
+	server_ELGamal = new ELGamal();
+	//server_ELGamal->elgamal_init();
+	return 0;
+}
+
+
 int Server::Listen() 
 {
 
@@ -180,7 +267,7 @@ int Server::Listen()
 
 		for (int n = (int)g_clientList.size() - 1; n >= 0; n--)
 		{
-			FD_SET(g_clientList[n], &readfds);
+		FD_SET(g_clientList[n], &readfds);
 		}
 
 		// 设置超时时间 select 非阻塞
@@ -219,7 +306,7 @@ int Server::Listen()
 				for (int n = (int)g_clientList.size() - 1; n >= 0; n--)
 				{
 					NewUserJoin userJoin;
-					send(g_clientList[n], (const char*)&userJoin, sizeof(NewUserJoin), 0);
+					//send(g_clientList[n], (const char*)&userJoin, sizeof(NewUserJoin), 0);
 				}
 
 				g_clientList.push_back(ClientSocket);
@@ -286,4 +373,26 @@ void Server::ClientSendMsg()//服务器发送数据到另一服务器
 
 	client->SendData(&login);
 
+}
+
+void Server::SendAll_paq()
+{
+	ELGalamKeyPAQ paq;
+	mpz_init_set(paq.p, server_ELGamal->p);
+	mpz_init_set(paq.a, server_ELGamal->a);
+	mpz_init_set(paq.q, server_ELGamal->q);
+	// 向之前的所有客户端群发消息
+	for (int n = (int)g_clientList.size() - 1; n >= 0; n--)
+	{
+		//Sleep(1);
+		send(g_clientList[n], (const char*)&paq, sizeof(ELGalamKeyPAQ), 0);
+	}
+	//LoginResult ret;
+	//for (int n = 0; n < 102; n++)
+	//{
+	//	if(id_clientList[n]!=0)
+	//	
+	//	send(id_clientList[n], (char*)&ret, sizeof(LoginResult), 0);
+	//	//send(id_clientList[n], (const char*)&paq, sizeof(ELGalamKeyPAQ), 0);
+	//}
 }

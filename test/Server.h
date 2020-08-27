@@ -10,6 +10,7 @@
 
 #include "EasyTcpClient.hpp"
 #include "MessageHeader.hpp"
+#include "ELGamal.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -21,6 +22,10 @@ class Server
 public:
 	Server();
 	~Server();
+
+	//加密解密
+	ELGamal*  server_ELGamal;
+	bool key_on = 0;
 	// 加载套接字库
 	WORD wVersionRequested;
 	WSADATA wsaData;
@@ -34,11 +39,19 @@ public:
 
 	SOCKET ListenSocket;// incoming connection requests.
 
+	
+
 	int ServerInit(int port);
+	int ServerELGamalInit();
 	int Listen();
 	int CloseSever();
+
+	void SendAll_paq();
+
 private:
 	std::vector<SOCKET> g_clientList;	// 客户端套接字列表
+	SOCKET id_clientList[102] = {0};	// 客户端套接字数组
+
 	int processor(SOCKET sock);
 
 

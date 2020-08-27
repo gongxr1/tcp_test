@@ -2,7 +2,7 @@
 
 ELGamal::ELGamal()
 {
-
+	elgamal_init();
 }
 ELGamal::~ELGamal()
 {
@@ -16,8 +16,12 @@ void ELGamal::elgamal_init()
 	mpz_init(q);//用于构造特殊素数
 	mpz_init(a);//生成元a
 	mpz_init(p);//全局素数p
+	mpz_init(X);
+	mpz_init(Y);
 	mpz_init(Xa);
 	mpz_init(Ya);
+	mpz_init(Xb);
+	mpz_init(Yb);
 	mpz_init(M);
 	mpz_init(K);
 	mpz_init(C1);
@@ -52,10 +56,80 @@ void ELGamal::key_generation() {
 		if ((mpz_cmp_ui(a, 1) != 0) && (mpz_cmp_ui(a_2, 1) != 0) && (mpz_cmp_ui(a_q, 1) != 0))
 			break;
 	} while (1);
-	mpz_urandomm(Xa, gmp_state, p);//生成私钥Xa
-	mpz_powm(Ya, a, Xa, p);//生成公钥Ya,Ya=a^Xa % p
+	//mpz_urandomm(Xa, gmp_state, p);//生成私钥Xa
+	mpz_urandomm(X, gmp_state, q);//生成私钥Xa
+	mpz_powm(Y, a, X, p);//生成公钥Y,Y=a^X % p
 
 }
+
+
+//求出public key = {p,a,Ya}; private key Xa;
+
+//随机选择一个整数d作为密钥，2≤d≤p-2 。
+//计算y = α ^ d mod p，取y为公钥。
+void ELGamal::key_generation_easy() {
+	gmp_randinit_mt(gmp_state);//用于随机数生成
+//根据系统时间设置random的seed   
+	gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
+	mpz_urandomm(X, gmp_state, q);//生成私钥Xa
+	mpz_powm(Y, a, X, p);//生成公钥Ya,Ya=a^Xa % p
+	flag_XY = true;
+}
+
+//随机选择一个整数d作为密钥，2≤d≤p-2 。
+//计算y = α ^ d mod p，取y为公钥。
+void ELGamal::key_generation_easy_a() {
+
+	gmp_randinit_mt(gmp_state);//用于随机数生成
+//根据系统时间设置random的seed   
+	gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
+
+	mpz_urandomm(Xa, gmp_state, q);//生成私钥Xa
+	mpz_powm(Ya, a, Xa, p);//生成公钥Ya,Ya=a^Xa % p
+	flag_XaYa = true;
+}
+
+//随机选择一个整数d作为密钥，2≤d≤p-2 。
+//计算y = α ^ d mod p，取y为公钥。
+void ELGamal::key_generation_easy_b() {
+	gmp_randinit_mt(gmp_state);//用于随机数生成
+//根据系统时间设置random的seed   
+	gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
+
+	mpz_urandomm(Xb, gmp_state, q);//生成私钥Xa
+	mpz_powm(Yb, a, Xb, p);//生成公钥Ya,Ya=a^Xa % p
+	flag_XbYb = true;
+}
+
+
+//最终秘钥生成
+void ELGamal::key_generation_end() {
+	mpz_init(Y_);
+	mpz_powm(Y_, Y_other, X, p);//生成最终公钥Y,Y=Ya^Xa % p
+	cout << "最终秘钥a：" << endl;
+	gmp_printf("{p:%Zd,\na:%Zd,\nXa:%Zd,\nY:%Zd}\n\n", p, a, X, Y_);
+
+	flag_Y_ = 1;
+}
+
+//最终秘钥生成
+void ELGamal::key_generation_end_a() {
+	mpz_init(Y_a);
+	mpz_powm(Y_a, Ya_other, Xa, p);//生成最终公钥Y,Y=Ya^Xa % p
+	cout << "最终秘钥a：" << endl;
+	gmp_printf("{p:%Zd,\na:%Zd,\nXa:%Zd,\nY:%Zd}\n\n", p, a, Xa,Y_a);
+	flag_Y_a = 1;
+}
+
+//最终秘钥生成
+void ELGamal::key_generation_end_b() {
+	mpz_init(Y_b);
+	mpz_powm(Y_b, Yb_other, Xb, p);//生成最终公钥Y,Y=Ya^Xa % p
+	cout << "最终秘钥b：" << endl;
+	gmp_printf("{p:%Zd,\na:%Zd,\nXa:%Zd,\nY:%Zd}\n\n", p, a, Xb, Y_b);
+	flag_Y_b = 1;
+}
+
 
 //输入明文，输出密文（C1，C2）
 
@@ -85,4 +159,11 @@ void ELGamal::elgamal_decrypt(mpz_t tmp1, mpz_t tmp2) {
 	mpz_invert(tmpK, tmpK, p);//求tmpK逆元
 	mpz_mul(result, tmp2, tmpK);//result= C2*tmpK^-1
 	mpz_mod(result, result, p);//result= result % p
+}
+
+
+void ELGamal::D_H_yxp(mpz_t Yb, mpz_t Xa, mpz_t& K)//计算dh秘钥交换的最终共享秘钥，K=(Yb^Xa)mod p
+{
+	mpz_init(K);
+	mpz_powm(K, Yb, Xa, p);//tmpK= C1^Xa % p
 }

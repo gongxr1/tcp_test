@@ -15,12 +15,15 @@
 #endif
 #include "stdio.h"
 #include "MessageHeader.hpp"
+#include "ELGamal.h"
+
 class EasyTcpClient
 {
 	SOCKET _sock;
 public:
 	EasyTcpClient()
 	{
+		client_ELGamal = new ELGamal();
 		_sock = INVALID_SOCKET;
 	}
 	/*虚析构函数*/
@@ -28,6 +31,10 @@ public:
 	{
 		Close();
 	}
+
+	//加密解密
+	ELGamal*  client_ELGamal;
+
 
 	/*初始化socket*/
 	void initSocket()
@@ -226,6 +233,57 @@ public:
 		case CMD_NEW_USER_JOIN:
 		{
 			NewUserJoin* userJoin = (NewUserJoin*)header;
+			//printf("<socket = %d>收到服务端消息:CMD_NEW_USER_JOIN 数据长度：%d \n", _sock, userJoin->dataLength);
+		}
+		break;
+		case CMD_ELGamal_KEY_PAQ:
+		{
+			ELGalamKeyPAQ *ELGamal = (ELGalamKeyPAQ*)header;
+
+			//printf("<socket = %d>收到服务端消息:CMD_ELGamal_KEY_PAQ 数据长度：%d \n", _sock, ELGamal->dataLength);
+
+			//recv(_sock, header + sizeof(DataHeader), pHeader->dataLength - sizeof(DataHeader), 0);
+			/*printf("收到客户端<Socket=%d>请求：CMD_ELGamal_KEY, 数据长度：%d",
+				_sock, ELGamal->dataLength);*/
+
+			mpz_init_set(client_ELGamal->q, ELGamal->q);
+			mpz_init_set(client_ELGamal->a, ELGamal->a);
+			mpz_init_set(client_ELGamal->p, ELGamal->p);
+
+			//生成Ya,Yb;Xa,Xb
+			client_ELGamal->key_generation_easy_a();
+			client_ELGamal->key_generation_easy_b();
+
+
+			gmp_printf("{Xa:%Zd,\nYa:%Zd,\nXb:%Zd,\nYb:%Zd}\n\n", client_ELGamal->Xa, client_ELGamal->Ya, client_ELGamal->Xb, client_ELGamal->Yb);
+
+
+			cout << "paq is OK" << endl;
+
+			//client_ELGamal->key_generation_easy();
+
+			//key_on = 1;
+			/*	LoginOutResult ret;
+				send(sock, (char*)&ret, sizeof(LoginOutResult), 0);*/
+		}
+		break;
+		case CMD_EXCHANGE_YAB:
+		{
+			ExchangeYab *exchangeYab = (ExchangeYab*)header;
+			if (exchangeYab->dir == 0)
+			{
+				mpz_init_set(client_ELGamal->Ya_other, exchangeYab->Y);
+				client_ELGamal->key_generation_end_a();
+				cout << "Ya is OK\n\n";
+			}
+			if (exchangeYab->dir == 1)
+			{
+				mpz_init_set(client_ELGamal->Yb_other, exchangeYab->Y);
+				client_ELGamal->key_generation_end_b();
+				cout << "Yb is OK\n\n";
+
+			}
+
 			//printf("<socket = %d>收到服务端消息:CMD_NEW_USER_JOIN 数据长度：%d \n", _sock, userJoin->dataLength);
 		}
 		break;
