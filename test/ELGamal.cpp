@@ -68,6 +68,7 @@ void ELGamal::key_generation() {
 //随机选择一个整数d作为密钥，2≤d≤p-2 。
 //计算y = α ^ d mod p，取y为公钥。
 void ELGamal::key_generation_easy() {
+
 	gmp_randinit_mt(gmp_state);//用于随机数生成
 //根据系统时间设置random的seed   
 	gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
@@ -80,9 +81,12 @@ void ELGamal::key_generation_easy() {
 //计算y = α ^ d mod p，取y为公钥。
 void ELGamal::key_generation_easy_a() {
 
+	clock_t time = clock();
+
 	gmp_randinit_mt(gmp_state);//用于随机数生成
 //根据系统时间设置random的seed   
-	gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
+	//gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
+	gmp_randseed_ui(gmp_state, time);
 
 	mpz_urandomm(Xa, gmp_state, q);//生成私钥Xa
 	mpz_powm(Ya, a, Xa, p);//生成公钥Ya,Ya=a^Xa % p
@@ -92,9 +96,12 @@ void ELGamal::key_generation_easy_a() {
 //随机选择一个整数d作为密钥，2≤d≤p-2 。
 //计算y = α ^ d mod p，取y为公钥。
 void ELGamal::key_generation_easy_b() {
+
+	clock_t time = clock();
+
 	gmp_randinit_mt(gmp_state);//用于随机数生成
 //根据系统时间设置random的seed   
-	gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
+	gmp_randseed_ui(gmp_state, time);
 
 	mpz_urandomm(Xb, gmp_state, q);//生成私钥Xa
 	mpz_powm(Yb, a, Xb, p);//生成公钥Ya,Ya=a^Xa % p
