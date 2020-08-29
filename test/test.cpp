@@ -321,7 +321,7 @@ void ClentInit()
 	client2[1]->SendData(&exchangeYab);
 
 	exchangeYab.dir = 0;
-	exchangeYab.id = 1;//前一个
+	exchangeYab.id = 52;//前一个
 	mpz_init_set(exchangeYab.Y, server_test2->server_ELGamal->Yb);
 	client1[0]->SendData(&exchangeYab);
 	client1[1]->SendData(&exchangeYab);
@@ -329,46 +329,46 @@ void ClentInit()
 	//编号为1的客户端将左右公钥发送给0号服务器和2号客户端
 	exchangeYab.dir = 4;
 	exchangeYab.id = 0;
-	mpz_init_set(exchangeYab.Y, client[1]->client_ELGamal->Ya);
+	mpz_init_set(exchangeYab.Y, client[0]->client_ELGamal->Ya);
 	client[0]->SendData(&exchangeYab);
 
 	exchangeYab.dir = 0;
 	exchangeYab.id = 2;
-	mpz_init_set(exchangeYab.Y, client[1]->client_ELGamal->Yb);
+	mpz_init_set(exchangeYab.Y, client[0]->client_ELGamal->Yb);
 	client[0]->SendData(&exchangeYab);
 
 	//编号为50的客户端将左右公钥发送给49号客户端和51号服务器
 	exchangeYab.dir = 1;
 	exchangeYab.id = 49;
-	mpz_init_set(exchangeYab.Y, client[1]->client_ELGamal->Ya);
+	mpz_init_set(exchangeYab.Y, client[49]->client_ELGamal->Ya);
 	client[49]->SendData(&exchangeYab);
 
 	exchangeYab.dir = 3;
 	exchangeYab.id = 51;
-	mpz_init_set(exchangeYab.Y, client[1]->client_ELGamal->Yb);
+	mpz_init_set(exchangeYab.Y, client[49]->client_ELGamal->Yb);
 	client1[0]->SendData(&exchangeYab);
 	client1[1]->SendData(&exchangeYab);
 
 	//编号为52的客户端将左右公钥发送给51号服务器和53号客户端
 	exchangeYab.dir = 4;
 	exchangeYab.id = 51;
-	mpz_init_set(exchangeYab.Y, client[1]->client_ELGamal->Ya);
+	mpz_init_set(exchangeYab.Y, client[50]->client_ELGamal->Ya);
 	client[50]->SendData(&exchangeYab);
 
 	exchangeYab.dir = 0;
 	exchangeYab.id = 53;
-	mpz_init_set(exchangeYab.Y, client[1]->client_ELGamal->Yb);
+	mpz_init_set(exchangeYab.Y, client[50]->client_ELGamal->Yb);
 	client[50]->SendData(&exchangeYab);
 
 	//编号为101的客户端将左右公钥发送给100号客户端和0号服务器
 	exchangeYab.dir = 1;
 	exchangeYab.id = 100;
-	mpz_init_set(exchangeYab.Y, client[1]->client_ELGamal->Ya);
+	mpz_init_set(exchangeYab.Y, client[99]->client_ELGamal->Ya);
 	client[99]->SendData(&exchangeYab);
 
 	exchangeYab.dir = 3;
 	exchangeYab.id = 0;
-	mpz_init_set(exchangeYab.Y, client[1]->client_ELGamal->Yb);
+	mpz_init_set(exchangeYab.Y, client[99]->client_ELGamal->Yb);
 	client2[0]->SendData(&exchangeYab);
 	client2[1]->SendData(&exchangeYab);
 
@@ -400,7 +400,10 @@ void ClentInit()
 		client[n]->SendData(&exchangeYab);
 	}
 
-	Sleep(3000);
+	Sleep(4000);
+
+	cout << "服务器0完成后秘钥：" << endl;
+	gmp_printf("{p:%Zd,\nXa:%Zd,\nY_a:%Zd,\nY_b:%Zd}\n\n", server_test1->server_ELGamal->p, server_test1->server_ELGamal->Xa, server_test1->server_ELGamal->Y_a, server_test1->server_ELGamal->Y_b);
 
 	for (int i = 0; i < 50; i++)
 	{
@@ -408,6 +411,10 @@ void ClentInit()
 		gmp_printf("{p:%Zd,\nXa:%Zd,\nY_a:%Zd,\nY_b:%Zd}\n\n", client[i]->client_ELGamal->p, client[i]->client_ELGamal->Xa, client[i]->client_ELGamal->Y_a, client[i]->client_ELGamal->Y_b);
 
 	}
+
+	cout << "服务器51完成后秘钥：" << endl;
+	gmp_printf("{p:%Zd,\nXa:%Zd,\nY_a:%Zd,\nY_b:%Zd}\n\n", server_test2->server_ELGamal->p, server_test2->server_ELGamal->Xa, server_test2->server_ELGamal->Y_a, server_test2->server_ELGamal->Y_b);
+
 	for (int i = 50; i < 100; i++)
 	{
 		cout << "客户端" << i + 2 << "完成后秘钥：" << endl;
