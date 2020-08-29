@@ -68,10 +68,13 @@ void ELGamal::key_generation() {
 //随机选择一个整数d作为密钥，2≤d≤p-2 。
 //计算y = α ^ d mod p，取y为公钥。
 void ELGamal::key_generation_easy() {
+	clock_t time = clock();
 
 	gmp_randinit_mt(gmp_state);//用于随机数生成
 //根据系统时间设置random的seed   
-	gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
+	gmp_randseed_ui(gmp_state, time);
+
+	//gmp_randseed_ui(gmp_state, (unsigned int)(time(NULL)));
 	mpz_urandomm(X, gmp_state, q);//生成私钥Xa
 	mpz_powm(Y, a, X, p);//生成公钥Ya,Ya=a^Xa % p
 	flag_XY = true;
